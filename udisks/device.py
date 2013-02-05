@@ -19,6 +19,17 @@ import dbus
 from interface import Interface
 from interface import DEVICE_IFACE
 from exceptions import *
+from collections import namedtuple
+
+# InfoDevice = namedtuple("InfoDevice", "DeviceFile DeviceSize
+# DeviceIsRemovable DeviceIsMounted DeviceIsMediaAvailable
+# DeviceMountPaths DeviceMountedByUid")
+InfoDevice = namedtuple("InfoDevice", "devfile size isRemovable isMounted isMediaAvailable mountPaths mountedByUid")
+# InfoPartition = namedtuple("InfoPartition", "PartitionScheme
+# PartitionNumber PartitionType PartitionLabel PartitionUuid
+# PartitionFlags PartitionSize")
+InfoPartition = namedtuple("InfoPartition", "scheme number type label uuid flags size")
+
 
 class Device(Interface):
 
@@ -29,7 +40,7 @@ class Device(Interface):
     def _exec_func(self, func, args=()):
         try:
             return func(*args)
-        except dbus.exceptions.DBusException, e:
+        except dbus.exceptions.DBusException as e:
             e_name = e.get_dbus_name()
             if e_name == "org.freedesktop.PolicyKit.Error.NotAuthorized":
                 raise NotAuthorized(str(e))
@@ -94,7 +105,7 @@ class Device(Interface):
     def LuksLock(self, options=''):
         raise NotImplementedError
 
-    def LuksChangePassphrase(self, current_passphrase,  new_passphrase):
+    def LuksChangePassphrase(self, current_passphrase, new_passphrase):
         raise NotImplementedError
 
     def LinuxMdAddComponent(self, component, options=''):
@@ -104,7 +115,7 @@ class Device(Interface):
         raise NotImplementedError
 
     def LinuxMdStop(self, options=''):
-        raise NotImplementedError 
+        raise NotImplementedError
 
     def LinuxLvm2LVStop(self, options=''):
         raise NotImplementedError
@@ -281,7 +292,7 @@ class Device(Interface):
 
     @property
     def DeviceSize(self):
-        return long(self._get_property("DeviceSize"))
+        return int(self._get_property("DeviceSize"))
 
     @property
     def DeviceBlockSize(self):
@@ -388,11 +399,11 @@ class Device(Interface):
 
     @property
     def PartitionOffset(self):
-        return long(self._get_property("PartitionOffset"))
+        return int(self._get_property("PartitionOffset"))
 
     @property
     def PartitionSize(self):
-        return long(self._get_property("PartitionSize"))
+        return int(self._get_property("PartitionSize"))
 
     @property
     def PartitionTableScheme(self):
@@ -436,7 +447,7 @@ class Device(Interface):
 
     @property
     def DriveConnectionSpeed(self):
-        return long(self._get_property("DriveConnectionSpeed"))
+        return int(self._get_property("DriveConnectionSpeed"))
 
     @property
     def DriveMediaCompatibility(self):
@@ -507,7 +518,7 @@ class Device(Interface):
 
     @property
     def DriveAtaSmartTimeCollected(self):
-        return long(self._get_property("DriveAtaSmartTimeCollected"))
+        return int(self._get_property("DriveAtaSmartTimeCollected"))
 
     @property
     def DriveAtaSmartStatus(self):
@@ -602,7 +613,7 @@ class Device(Interface):
 
     @property
     def LinuxMdSyncSpeed(self):
-        return long(self._get_property("LinuxMdSyncSpeed"))
+        return int(self._get_property("LinuxMdSyncSpeed"))
 
     @property
     def LinuxLvm2PVUuid(self):
@@ -622,19 +633,19 @@ class Device(Interface):
 
     @property
     def LinuxLvm2PVGroupSize(self):
-        return long(self._get_property("LinuxLvm2PVGroupSize"))
+        return int(self._get_property("LinuxLvm2PVGroupSize"))
 
     @property
     def LinuxLvm2PVGroupUnallocatedSize(self):
-        return long(self._get_property("LinuxLvm2PVGroupUnallocatedSize"))
+        return int(self._get_property("LinuxLvm2PVGroupUnallocatedSize"))
 
     @property
     def LinuxLvm2PVGroupSequenceNumber(self):
-        return long(self._get_property("LinuxLvm2PVGroupSequenceNumber"))
+        return int(self._get_property("LinuxLvm2PVGroupSequenceNumber"))
 
     @property
     def LinuxLvm2PVGroupExtentSize(self):
-        return long(self._get_property("LinuxLvm2PVGroupExtentSize"))
+        return int(self._get_property("LinuxLvm2PVGroupExtentSize"))
 
     @property
     def LinuxLvm2PVGroupPhysicalVolumes(self):
@@ -682,3 +693,23 @@ class Device(Interface):
     def LinuxDmmpParameters(self):
         return str(self._get_property("LinuxDmmpParameters"))
 
+    def GetInfoPartition(self):
+        scheme = self.PartitionScheme
+        number = self.PartitionNumber
+        ptype = self.PartitionType
+        label = self.PartitionLabel
+        uuid = self.PartitionUuid
+        flags = self.PartitionFlags
+        size = self.PartitionSize
+        return InfoPartition(scheme, number, ptype, label, uuid, flags, size)
+
+    def GetInfoDevice(self):
+
+        devfile = self.DeviceFile
+        size = self.DeviceSize
+        isRemovable = self.DeviceIsRemovable
+        isMounted = self.DeviceIsMounted
+        isMediaAvailable = self.DeviceIsMediaAvailable
+        mountPaths = self.DeviceMountPaths
+        mountedByUid = self.DeviceMountedByUid
+        return InfoDevice(devfile, size, isRemovable, isMounted, isMediaAvailable, mountPaths, mountedByUid)
